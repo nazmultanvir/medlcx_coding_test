@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+/* Fallback manual utilities (in case custom colors not picked up) */
+.bg-primary { background-color: #ffbf00 !important; }
+.text-primary { color: #ffbf00 !important; }
+.border-primary { border-color: #ffbf00 !important; }
+
+.bg-brand-navy { background-color: #002b5c !important; }
+.text-brand-navy { color: #002b5c !important; }
+.border-brand-navy { border-color: #002b5c !important; }
+
+.bg-brand-gold { background-color: #C2860A !important; }
+.text-brand-gold { color: #C2860A !important; }
+.border-brand-gold { border-color: #C2860A !important; }
