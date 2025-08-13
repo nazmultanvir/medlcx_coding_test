@@ -24,22 +24,6 @@ interface Position {
     y: number;
 }
 
-// Keep the tracking square within camera bounds
-const constrainSquarePosition = (
-    pos: Position,
-    videoWidth: number,
-    videoHeight: number,
-    squareSize: number
-): { left: string; top: string } => {
-    const x = Math.max(0, Math.min(videoWidth - squareSize, pos.x));
-    const y = Math.max(0, Math.min(videoHeight - squareSize, pos.y));
-
-    return {
-        left: `${x}px`,
-        top: `${y}px`,
-    };
-};
-
 const CaptchaVerification: React.FC<CaptchaVerificationProps> = ({ onComplete }) => {
     // Camera and permissions
     const [cameraState, setCameraState] = useState<'requesting' | 'allowed' | 'blocked'>('requesting');
@@ -47,7 +31,7 @@ const CaptchaVerification: React.FC<CaptchaVerificationProps> = ({ onComplete })
     // Verification flow
     const [currentStep, setCurrentStep] = useState<VerificationStep>("camera");
     const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
-    const [squarePosition, setSquarePosition] = useState<Position>({ x: 50, y: 50 });
+    const [squarePosition, setSquarePosition] = useState<Position>({ x: 30, y: 30 });
     const [lockedPosition, setLockedPosition] = useState<Position | null>(null);
     const [gridSectors, setGridSectors] = useState<GridSector[]>([]);
     const [selectedSectors, setSelectedSectors] = useState<number[]>([]);
@@ -123,10 +107,12 @@ const CaptchaVerification: React.FC<CaptchaVerificationProps> = ({ onComplete })
     }, []);
 
     const getRandomSquarePosition = useCallback((): Position => {
-        const padding = 50; // Keep square away from edges
+        // Use percentage-based positioning with proper constraints for square size
+        const minPercent = 5; // 5% margin from edges
+        const maxPercent = 55; // Leave space for 30vw square (max 200px)
         return {
-            x: Math.random() * (590 - padding * 2) + padding,
-            y: Math.random() * (430 - padding * 2) + padding
+            x: Math.random() * (maxPercent - minPercent) + minPercent,
+            y: Math.random() * (maxPercent - minPercent) + minPercent
         };
     }, []);
 
@@ -195,7 +181,7 @@ const CaptchaVerification: React.FC<CaptchaVerificationProps> = ({ onComplete })
         setGridSectors([]);
         setSelectedSectors([]);
         setResult(null);
-        setSquarePosition({ x: 50, y: 50 });
+        setSquarePosition({ x: 30, y: 30 });
 
         requestCameraAccess();
         startSquareAnimation();
@@ -224,29 +210,29 @@ const CaptchaVerification: React.FC<CaptchaVerificationProps> = ({ onComplete })
     }, [currentStep, requestCameraAccess, startSquareAnimation]);
 
     const renderCameraStep = () => (
-        <div className="text-center bg-white py-8 px-16">
-            <h2 className="text-2xl text-brand-navy mb-6">Take Your Photo</h2>
+        <div className="text-center bg-white py-6 sm:py-8 px-4 sm:px-8 lg:px-16">
+            <h2 className="text-xl sm:text-2xl text-brand-navy mb-4 sm:mb-6">Take Your Photo</h2>
 
             {cameraState === 'requesting' && (
-                <div className="text-gray-500 text-lg mb-6 min-w-[648px] min-h-[488px] flex items-center justify-center">
+                <div className="text-gray-500 text-base sm:text-lg mb-6 w-full max-w-[648px] min-h-[250px] sm:min-h-[488px] flex items-center justify-center mx-auto">
                     Accessing camera...
                 </div>
             )}
 
             {cameraState === 'blocked' && (
-                <div className="flex flex-col items-center justify-center bg-white rounded-lg shadow-md p-6 min-w-[648px] min-h-[488px] border border-red-200">
+                <div className="flex flex-col items-center justify-center bg-white rounded-lg shadow-md p-4 sm:p-6 w-full max-w-[648px] min-h-[250px] sm:min-h-[488px] border border-red-200 mx-auto">
                     <div className="flex items-center gap-2 mb-2">
-                        <svg width="28" height="28" fill="none" viewBox="0 0 28 28">
+                        <svg width="24" height="24" className="sm:w-7 sm:h-7" fill="none" viewBox="0 0 28 28">
                             <circle cx="14" cy="14" r="14" fill="#F87171" />
                             <path d="M9 9l10 10M19 9l-10 10" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
                         </svg>
-                        <span className="text-red-600 font-semibold text-base">Camera Blocked</span>
+                        <span className="text-red-600 font-semibold text-sm sm:text-base">Camera Blocked</span>
                     </div>
-                    <div className="text-gray-700 text-sm text-center mb-4">
+                    <div className="text-gray-700 text-xs sm:text-sm text-center mb-4">
                         Please allow camera access in your browser settings and try again.
                     </div>
                     <button
-                        className="bg-brand-gold hover:bg-yellow-600 text-white py-2 px-4 rounded-md shadow transition-colors"
+                        className="bg-brand-gold hover:bg-yellow-600 text-white py-2 px-4 rounded-md shadow transition-colors text-sm sm:text-base"
                         onClick={requestCameraAccess}
                     >
                         Try Again
@@ -255,22 +241,21 @@ const CaptchaVerification: React.FC<CaptchaVerificationProps> = ({ onComplete })
             )}
 
             {cameraState === 'allowed' && (
-                <div className="relative inline-block min-w-[648px] min-h-[488px]">
+                <div className="relative inline-block w-full max-w-[648px] mx-auto rounded-sm overflow-hidden">
                     <video
                         ref={videoRef}
-                        className="rounded-sm border-2 border-white"
-                        width="640"
-                        height="480"
+                        className="rounded-sm border-2 border-white w-full h-auto max-w-full block"
+                        style={{ aspectRatio: '4/3' }}
                         playsInline
                         muted
                     />
 
                     <div
-                        className="absolute border-2 border-gray-50 transition-all duration-1000"
+                        className="absolute border-2 border-gray-50 transition-all duration-1000 aspect-square"
                         style={{
-                            width: '200px',
-                            height: '200px',
-                            ...constrainSquarePosition(squarePosition, 640, 480, 200),
+                            width: 'min(150px, 25vw)',
+                            left: `${Math.max(2, Math.min(75, squarePosition.x))}%`,
+                            top: `${Math.max(2, Math.min(75, squarePosition.y))}%`,
                             background: 'rgba(255,255,255,0.25)',
                             backdropFilter: 'blur(8px)',
                             WebkitBackdropFilter: 'blur(8px)',
@@ -281,10 +266,10 @@ const CaptchaVerification: React.FC<CaptchaVerificationProps> = ({ onComplete })
                 </div>
             )}
 
-            <div className="mt-6">
+            <div className="mt-4 sm:mt-6">
                 <button
                     onClick={captureCurrentFrame}
-                    className="bg-brand-gold uppercase hover:bg-yellow-600 text-white py-1 px-6 transition-colors text-lg"
+                    className="bg-brand-gold uppercase hover:bg-yellow-600 text-white py-2 sm:py-3 px-4 sm:px-6 transition-colors text-sm sm:text-lg rounded-md"
                     disabled={cameraState !== 'allowed'}
                 >
                     Continue
@@ -294,27 +279,27 @@ const CaptchaVerification: React.FC<CaptchaVerificationProps> = ({ onComplete })
     );
 
     const renderSelectionStep = () => (
-        <div className="text-center bg-white py-8 px-16">
-            <h2 className="text-2xl text-brand-navy mb-6">
+        <div className="text-center bg-white py-6 sm:py-8 px-4 sm:px-8 lg:px-16">
+            <h2 className="text-lg sm:text-2xl text-brand-navy mb-4 sm:mb-6">
                 Select all <span className="font-bold text-brand-gold">{targetShape}s</span> with{' '}
                 <span className="font-bold text-brand-gold">{targetTint}</span> tint
             </h2>
 
             {capturedPhoto && lockedPosition && (
-                <div className="relative inline-block">
+                <div className="relative inline-block w-full max-w-[640px] mx-auto rounded-sm overflow-hidden">
                     <img
                         src={capturedPhoto}
                         alt="Your photo"
-                        className="border-2 border-white"
-                        style={{ maxWidth: '640px', height: 'auto' }}
+                        className="border-2 border-white w-full h-auto rounded-sm block"
+                        style={{ maxWidth: '100%' }}
                     />
 
                     <div
-                        className="absolute border-2 border-brand-gold"
+                        className="absolute border-2 border-brand-gold aspect-square"
                         style={{
-                            width: '200px',
-                            height: '200px',
-                            ...constrainSquarePosition(lockedPosition, 640, 480, 200),
+                            width: 'min(150px, 25vw)',
+                            left: `${Math.max(2, Math.min(75, lockedPosition.x))}%`,
+                            top: `${Math.max(2, Math.min(75, lockedPosition.y))}%`,
                             background: 'rgba(255,255,255,0.25)',
                             backdropFilter: 'blur(8px)',
                             WebkitBackdropFilter: 'blur(8px)',
@@ -330,11 +315,11 @@ const CaptchaVerification: React.FC<CaptchaVerificationProps> = ({ onComplete })
                 </div>
             )}
 
-            <div className="mt-6">
+            <div className="mt-4 sm:mt-6">
                 <button
                     onClick={checkUserSelection}
                     disabled={isValidating || selectedSectors.length === 0}
-                    className="bg-brand-gold uppercase hover:bg-yellow-600 text-white py-1 px-6 transition-colors text-lg disabled:bg-gray-400"
+                    className="bg-brand-gold uppercase hover:bg-yellow-600 text-white py-2 sm:py-3 px-4 sm:px-6 transition-colors text-sm sm:text-lg rounded-md disabled:bg-gray-400"
                 >
                     {isValidating ? 'Checking...' : 'Submit'}
                 </button>
@@ -344,41 +329,43 @@ const CaptchaVerification: React.FC<CaptchaVerificationProps> = ({ onComplete })
 
     const renderResultsStep = () => (
         <div className="text-center">
-            <h2 className="text-2xl font-bold text-white mb-6">Verification Complete</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">Verification Complete</h2>
 
-            <div className="mb-6">
+            <div className="mb-4 sm:mb-6">
                 {result === "PASS" ? (
-                    <div className="text-success-green text-4xl font-bold">
+                    <div className="text-success-green text-3xl sm:text-4xl font-bold">
                         ✓ Verified!
                     </div>
                 ) : (
-                    <div className="text-red-400 text-4xl font-bold">
+                    <div className="text-red-400 text-3xl sm:text-4xl font-bold">
                         ✗ Verification Failed
                     </div>
                 )}
             </div>
 
-            {result === "FAIL" && attemptsMade < 3 && (
-                <button
-                    onClick={restartVerification}
-                    className="bg-brand-gold hover:bg-yellow-600 text-brand-navy font-bold py-3 px-8 rounded-lg transition-colors text-lg mr-4"
-                >
-                    Try Again ({3 - attemptsMade} left)
-                </button>
-            )}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+                {result === "FAIL" && attemptsMade < 3 && (
+                    <button
+                        onClick={restartVerification}
+                        className="bg-brand-gold hover:bg-yellow-600 text-brand-navy font-bold py-2 sm:py-3 px-4 sm:px-8 rounded-lg transition-colors text-sm sm:text-lg"
+                    >
+                        Try Again ({3 - attemptsMade} left)
+                    </button>
+                )}
 
-            <button
-                onClick={() => window.location.reload()}
-                className="bg-white hover:bg-gray-100 text-brand-navy font-bold py-3 px-8 rounded-lg transition-colors text-lg"
-            >
-                Start Over
-            </button>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="bg-white hover:bg-gray-100 text-brand-navy font-bold py-2 sm:py-3 px-4 sm:px-8 rounded-lg transition-colors text-sm sm:text-lg"
+                >
+                    Start Over
+                </button>
+            </div>
         </div>
     );
 
     return (
-        <div className="flex justify-center items-center min-h-screen bg-gray-200">
-            <div className="bg-brand-navy px-16 py-14">
+        <div className="flex justify-center items-center min-h-screen bg-gray-200 p-2 sm:p-4">
+            <div className="bg-brand-navy px-4 sm:px-8 lg:px-16 py-6 sm:py-10 lg:py-14 rounded-lg max-w-4xl w-full mx-auto">
                 {currentStep === "camera" && renderCameraStep()}
                 {currentStep === "selection" && renderSelectionStep()}
                 {currentStep === "results" && renderResultsStep()}

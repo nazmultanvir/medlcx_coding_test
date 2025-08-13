@@ -24,8 +24,8 @@ const CameraPreview: React.FC<CameraPreviewProps> = ({
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: {
                         facingMode: 'user',
-                        width: { ideal: 640 },
-                        height: { ideal: 480 }
+                        width: { ideal: 640, max: 1280 },
+                        height: { ideal: 480, max: 720 }
                     },
                     audio: false
                 });
@@ -60,9 +60,9 @@ const CameraPreview: React.FC<CameraPreviewProps> = ({
 
     if (error) {
         return (
-            <div className={`bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center ${className}`}>
-                <p className="text-gray-600">Camera not available</p>
-                <p className="text-sm text-gray-500 mt-1">{error}</p>
+            <div className={`bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 text-center ${className}`}>
+                <p className="text-gray-600 text-sm sm:text-base">Camera not available</p>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1">{error}</p>
             </div>
         );
     }
@@ -78,9 +78,9 @@ const CameraPreview: React.FC<CameraPreviewProps> = ({
             />
             {loading && (
                 <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center rounded-lg">
-                    <div className="text-white text-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
-                        <p>Connecting to camera...</p>
+                    <div className="text-white text-center px-4">
+                        <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-white mx-auto mb-2"></div>
+                        <p className="text-sm sm:text-base">Connecting to camera...</p>
                     </div>
                 </div>
             )}

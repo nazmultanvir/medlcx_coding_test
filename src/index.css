@@ -12,3 +12,45 @@
 .bg-brand-gold { background-color: #C2860A !important; }
 .text-brand-gold { color: #C2860A !important; }
 .border-brand-gold { border-color: #C2860A !important; }
+
+/* Mobile-specific improvements */
+@media (max-width: 640px) {
+  /* Prevent zoom on form inputs */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+  
+  /* Better touch targets */
+  button, .cursor-pointer {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Improve video aspect ratio on mobile */
+  video {
+    max-height: 60vh;
+    object-fit: cover;
+  }
+  
+  /* Make grid cells more touch-friendly on mobile */
+  .grid > div {
+    min-height: 20px !important;
+    min-width: 20px !important;
+  }
+}
+
+/* Prevent horizontal scrolling */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Improve touch interactions */
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+/* Ensure grid maintains aspect ratio */
+.aspect-square {
+  aspect-ratio: 1 / 1;
+}

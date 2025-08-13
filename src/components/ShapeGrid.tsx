@@ -33,19 +33,19 @@ const ShapeGrid: React.FC<ShapeGridProps> = ({
     };
 
     const createShape = (shape: ShapeType, tint?: ColorTint, rotation = 0, jitter = { x: 0, y: 0 }, sectorId = 0) => {
-        const baseSize = 18;
-        // Add slight size variation based on sector ID for more natural look
-        const sizeVariation = (sectorId % 7) * 0.8;
+        // Make shapes responsive based on container size
+        const baseSize = window.innerWidth < 640 ? 8 : 12; // Smaller on mobile, larger on desktop
+        const sizeVariation = (sectorId % 7) * 0.3;
         const finalSize = baseSize + sizeVariation;
 
         const shapeColor = shapeColors[tint || 'red'];
 
-        const transform = `rotate(${rotation}deg) translate(${jitter.x}px, ${jitter.y}px)`;
+        const transform = `rotate(${rotation}deg) translate(${jitter.x * 0.3}px, ${jitter.y * 0.3}px)`;
         const commonStyle = {
             width: `${finalSize}px`,
             height: `${finalSize}px`,
             transform,
-            filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.25))',
+            filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))',
         };
 
         switch (shape) {
@@ -62,7 +62,7 @@ const ShapeGrid: React.FC<ShapeGridProps> = ({
                         style={{
                             ...commonStyle,
                             backgroundColor: shapeColor,
-                            borderRadius: '2px',
+                            borderRadius: '1px',
                         }}
                     />
                 );
@@ -83,10 +83,10 @@ const ShapeGrid: React.FC<ShapeGridProps> = ({
         }
     };
 
-    // Create some visual noise to make it harder for bots
+    // Generate some visual noise to make it harder for bots
     const generateNoise = (sectorId: number) => {
         const particles = [];
-        const noiseAmount = 4; // Keep it subtle
+        const noiseAmount = 2; // Reduced for mobile
 
         for (let i = 0; i < noiseAmount; i++) {
             // Simple pseudo-random based on sector ID and index
@@ -96,7 +96,7 @@ const ShapeGrid: React.FC<ShapeGridProps> = ({
             particles.push(
                 <div
                     key={`particle-${i}`}
-                    className="absolute w-1 h-1 bg-gray-300 opacity-30 rounded-full"
+                    className="absolute w-0.5 h-0.5 bg-gray-300 opacity-30 rounded-full"
                     style={{
                         left: `${xSeed}%`,
                         top: `${ySeed}%`,
@@ -123,14 +123,14 @@ const ShapeGrid: React.FC<ShapeGridProps> = ({
         }
 
         return (
-            <div className={`grid grid-cols-3 gap-2 ${className}`}>
+            <div className={`grid grid-cols-3 gap-1 sm:gap-2 ${className}`}>
                 {defaultCells}
             </div>
         );
     }
 
     return (
-        <div className={`grid grid-cols-4 gap-1 ${className}`}>
+        <div className={`grid grid-cols-4 gap-px h-full w-full ${className}`}>
             {gridData.map((sector) => {
                 const isSelected = selectedSectors.includes(sector.id);
 
@@ -145,14 +145,17 @@ const ShapeGrid: React.FC<ShapeGridProps> = ({
                         key={sector.id}
                         onClick={onSectorClick}
                         className={`
-                            relative aspect-square border-2 cursor-pointer transition-all duration-150
-                            flex items-center justify-center
+                            relative aspect-square border cursor-pointer transition-all duration-150
+                            flex items-center justify-center touch-manipulation
                             ${isSelected
                                 ? 'border-gray-400 bg-gray-100 shadow-md'
-                                : 'border-gray-300 bg-white hover:bg-gray-50'
+                                : 'border-gray-300 bg-white hover:bg-gray-50 active:bg-gray-100'
                             }
                         `}
-                        style={{ minHeight: '42px' }}
+                        style={{
+                            minHeight: '15px',
+                            minWidth: '15px'
+                        }}
                     >
                         {generateNoise(sector.id)}
 
@@ -165,7 +168,7 @@ const ShapeGrid: React.FC<ShapeGridProps> = ({
                         )}
 
                         {isSelected && (
-                            <div className="absolute top-1 right-1 w-3 h-3 bg-gray-600 rounded-full border border-white" />
+                            <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 bg-gray-600 rounded-full border border-white" />
                         )}
                     </div>
                 );
